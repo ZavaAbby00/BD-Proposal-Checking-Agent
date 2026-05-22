@@ -1,6 +1,6 @@
 /**
- * Local stdio MCP server — lets desktop MCP clients (Claude Desktop, Claude
- * Code, Cursor) drive the proposal-review engine directly.
+ * Local stdio MCP server — lets local MCP clients drive the proposal-review
+ * engine directly.
  *
  *   MCP_API_KEY=pck_xxx npm run mcp:stdio
  *

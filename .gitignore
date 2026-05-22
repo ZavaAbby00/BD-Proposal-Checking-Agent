@@ -34,12 +34,11 @@ service-account*.json
 application_default_credentials.json
 gha-creds-*.json
 
-# ─── Claude / AI assistant artifacts ───
-.claude/
-CLAUDE.md
-**/CLAUDE.md
+# ─── Local editor / tooling artifacts ───
+.idea/
+.vscode/
 .cursor/
-.aider*
+*.swp
 
 # typescript / build info
 *.tsbuildinfo

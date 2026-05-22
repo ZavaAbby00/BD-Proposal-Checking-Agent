@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| Live URL | https://proposal-agent-73183888096.asia-southeast2.run.app |
+| Live URL | https://proposal-agent-73183888096.asia-southeast2.run.app — hosted demo available until **29 May 2026** |
 | GCP project | `elivision-ai-1` · region `asia-southeast2` |
 | Cloud Run service | `proposal-agent` — 1 vCPU / 1 GiB · min 0 / max 5 · `--no-cpu-throttling` |
 | Runtime service account | `dev-zava@elivision-ai-1.iam.gserviceaccount.com` |

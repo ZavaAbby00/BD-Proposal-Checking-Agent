@@ -1,7 +1,7 @@
 # MCP Server
 
 The proposal-review engine is exposed over the **Model Context Protocol** so any MCP
-client (Claude Desktop, Claude Code, Cursor, custom agents) can drive it.
+client (IDE agents, desktop AI assistants, custom agents) can drive it.
 
 ## Endpoint & transports
 
@@ -64,7 +64,7 @@ external agent compose the pipeline itself.
 **Remote (Streamable HTTP)** — point the client at `https://<host>/api/mcp/mcp` with the
 `Authorization: Bearer <key>` header.
 
-**Local (stdio)** — for example, a Claude Desktop entry:
+**Local (stdio)** — for example, an MCP client configuration entry:
 
 ```json
 {

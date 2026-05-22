@@ -21,4 +21,4 @@ For the high-level design rationale and the assignment answers, see
   Vertex AI Gemini, traced in Langfuse.
 - **Trustworthy by construction.** A deterministic Citation Verifier and a deterministic
   Scoring agent mean the verdict is never an unchecked LLM opinion.
-- **Live:** https://proposal-agent-73183888096.asia-southeast2.run.app
+- **Live demo:** https://proposal-agent-73183888096.asia-southeast2.run.app (available until 29 May 2026)

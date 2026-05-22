@@ -48,7 +48,7 @@ export function CreateApiKey() {
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Key name (e.g. Claude Desktop)"
+            placeholder="Key name (e.g. CI pipeline)"
             className="max-w-xs"
           />
           <select

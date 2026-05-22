@@ -7,12 +7,14 @@ recommendations, and a readiness score.
 
 The proposal-review **engine** is exposed through two surfaces:
 
-- an **MCP server** — so any AI agent (Claude Desktop, Claude Code, Cursor,
-  custom agents) can run reviews;
+- an **MCP server** — so any MCP-compatible client or AI agent can run reviews;
 - a **multi-tenant SaaS web app** — Google SSO, an admin panel, and a UI for the
   BD team.
 
-**Live:** https://proposal-agent-73183888096.asia-southeast2.run.app
+**Live demo:** https://proposal-agent-73183888096.asia-southeast2.run.app
+
+> **Note —** the hosted demo is available until **29 May 2026**; after that date the
+> Cloud Run service is shut down. Deploy your own instance from this repo (see below).
 
 **Documentation**
 

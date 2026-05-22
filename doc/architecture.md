@@ -12,7 +12,7 @@ server and a multi-tenant SaaS web app.
 ```mermaid
 flowchart TB
     browser["BD team browser"]
-    mcpclient["MCP clients<br/>Claude Desktop / Code · Cursor · custom agents"]
+    mcpclient["MCP clients<br/>IDE agents · desktop assistants · custom agents"]
 
     subgraph service["Cloud Run — single container"]
         direction TB

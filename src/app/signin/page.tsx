@@ -51,6 +51,9 @@ export default async function SignInPage({
             Access is restricted to whitelisted organization domains.
           </p>
         </div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Demo environment — available until 29 May 2026.
+        </p>
       </div>
     </div>
   );
