@@ -12,9 +12,15 @@ The proposal-review **engine** is exposed through two surfaces:
 - a **multi-tenant SaaS web app** — Google SSO, an admin panel, and a UI for the
   BD team.
 
-See **[DESIGN.md](./DESIGN.md)** for the architecture and the answers to the
-assignment questions (System Design, Agentic Workflow, Structured Output,
-Evaluation, Debugging Scenario).
+**Live:** https://proposal-agent-73183888096.asia-southeast2.run.app
+
+**Documentation**
+
+- **[DESIGN.md](./DESIGN.md)** — design rationale and the assignment answers
+  (System Design, Agentic Workflow, Structured Output, Evaluation, Debugging Scenario).
+- **[doc/](./doc/)** — technical reference: [architecture](./doc/architecture.md) ·
+  [engine](./doc/engine.md) · [MCP](./doc/mcp.md) · [HTTP API](./doc/api.md) ·
+  [deployment](./doc/deployment.md).
 
 ## How it works
 
@@ -83,9 +89,9 @@ Both require Vertex AI access (ADC).
 ## Testing the full flow (the assignment's expected output)
 
 1. Sign in with a whitelisted Google account.
-2. **New review** → upload `samples/proposal-pt-sentosa.txt` as the proposal and
-   `samples/tor-pt-sentosa.txt` as the client brief (PDF / DOCX / a Google Docs
-   link also work).
+2. **New review** → upload `samples/proposal-pt-sentosa.pdf` as the proposal and
+   `samples/tor-pt-sentosa.pdf` as the client brief. (`.txt`/`.docx` files and
+   Google Docs links also work.)
 3. Watch the multi-agent pipeline run, then read the structured result —
    completeness checklist, requirement match, key gaps, commercial risks,
    recommendations, readiness score, and citations.
@@ -116,17 +122,15 @@ The engine is exposed as MCP tools (`review_proposal`, `extract_requirements`,
 
 ## Deploy to Cloud Run
 
+Already running at the live URL above. To deploy your own instance:
+
 ```bash
 gcloud builds submit --config=cloudbuild.yaml .   # or: bash scripts/deploy.sh
 ```
 
-Provision once: a Cloud SQL Postgres instance, a Cloud Storage bucket, an
-Artifact Registry repo named `proposal-agent`, and the service environment
-variables / secrets (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID/SECRET`,
-`AUTH_URL`, `SUPERADMIN_EMAILS`, `GOOGLE_CLOUD_PROJECT`, `VERTEX_LOCATION`,
-`GEMINI_MODEL`, `GCS_BUCKET`, `LANGFUSE_*`). On Cloud Run, Vertex AI uses the
-service account automatically — no key file needed. The container runs
-`prisma migrate deploy` on start.
+Full instructions — GCP setup, environment variables, secrets and CI/CD — are in
+**[doc/deployment.md](./doc/deployment.md)**. The container runs `prisma migrate deploy`
+on start; on Cloud Run, Vertex AI uses the runtime service account (no key file needed).
 
 ## Project structure
 
@@ -137,9 +141,10 @@ src/app/         Next.js routes — UI, API, MCP endpoint, admin, platform
 src/lib/         auth, tenancy, storage, reviews service, document parsing
 prisma/          schema + migrations + seed
 scripts/         review-sample · eval · deploy
-samples/         sample proposal + TOR (incl. the missing-pricing case)
+samples/         sample proposal + TOR (PDF + text, incl. the missing-pricing case)
 eval/            evaluation dataset
-docker/          Dockerfile + entrypoint
+doc/             technical documentation
+Dockerfile       container build (entrypoint in docker/entrypoint.sh)
 ```
 
 ## npm scripts
