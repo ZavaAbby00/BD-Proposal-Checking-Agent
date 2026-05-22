@@ -23,6 +23,7 @@ gcloud run deploy "${SERVICE}" \
   --project="${PROJECT}" \
   --region="${REGION}" \
   --platform=managed \
+  --service-account="dev-zava@${PROJECT}.iam.gserviceaccount.com" \
   --allow-unauthenticated \
   --no-cpu-throttling \
   --min-instances=0 \

@@ -43,6 +43,7 @@ steps:
       - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
       - --region=${_REGION}
       - --platform=managed
+      - --service-account=dev-zava@$PROJECT_ID.iam.gserviceaccount.com
       - --allow-unauthenticated
       - --no-cpu-throttling
       - --min-instances=0
