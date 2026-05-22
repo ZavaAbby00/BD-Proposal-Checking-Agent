@@ -1,94 +1,214 @@
 # Architecture
 
-## Overview
-
 The AI Proposal Checking Agent reviews a Business Development proposal draft against a
-client brief / RFP / TOR and returns a structured, citation-grounded checking result.
+client brief / RFP / TOR and returns a structured, citation-grounded checking result. It is
+built as **one framework-agnostic engine consumed by two delivery surfaces** — an MCP
+server and a multi-tenant SaaS web app.
 
-It is built as **one engine consumed by two delivery surfaces**:
+> All diagrams below are [Mermaid](https://mermaid.js.org/) and render directly on GitHub.
 
+## System architecture
+
+```mermaid
+flowchart TB
+    browser["BD team browser"]
+    mcpclient["MCP clients<br/>Claude Desktop / Code · Cursor · custom agents"]
+
+    subgraph service["Cloud Run — single container"]
+        direction TB
+        web["Web app<br/>Next.js UI · API routes · admin panels"]
+        mcp["MCP server<br/>tools · resources · prompts"]
+        engine["Core engine — src/engine<br/>LangGraph orchestrator + 10 agents"]
+        web --> engine
+        mcp --> engine
+    end
+
+    subgraph shared["Shared infrastructure"]
+        sql[("Cloud SQL<br/>PostgreSQL")]
+        gcs[("Cloud Storage")]
+        vertex["Vertex AI<br/>Gemini 3.5 Flash"]
+        langfuse["Langfuse"]
+    end
+
+    browser -->|Google SSO| web
+    mcpclient -->|organization API key| mcp
+    web --> sql
+    web --> gcs
+    mcp --> sql
+    engine --> vertex
+    engine -.->|traces| langfuse
 ```
-        ┌────────────────────────────────────────────────────────┐
-        │  CORE ENGINE   src/engine  (framework-agnostic, no HTTP) │
-        │  Orchestrator (LangGraph) + 10 specialist agents         │
-        │  Vertex AI Gemini 3.5 Flash   ·   Langfuse tracing       │
-        └───────────────┬───────────────────────┬─────────────────┘
-                        │                       │
-          ┌─────────────▼──────────┐  ┌─────────▼──────────────────┐
-          │ MCP SERVER  src/mcp    │  │ SaaS WEB APP  src/app       │
-          │ /api/mcp/mcp           │  │ Next.js UI · Google SSO     │
-          │ Streamable HTTP + stdio│  │ · admin + platform panels   │
-          │ per-org API-key auth   │  │                            │
-          └────────────────────────┘  └────────────────────────────┘
-                  ▲                            ▲
-            any MCP client                BD team browser
 
-   shared: Postgres (Cloud SQL) · Cloud Storage · per-org settings & rubric
-```
-
-The engine (`src/engine/`) has **no HTTP or framework dependencies**. The MCP server and
-the web app are peer consumers of it — the proposal-checking capability is reusable by any
-AI agent, not locked to one UI.
+The **engine** has no HTTP or framework dependencies. The web app and the MCP server are
+peer consumers of it — the same review capability is reachable from a browser or from any
+AI agent. Everything ships in one container and runs as a single Cloud Run service.
 
 ## Components
 
 | Component | Path | Responsibility |
 |---|---|---|
-| Engine | `src/engine/` | The multi-agent orchestrator + agents — see [engine.md](engine.md) |
-| MCP server | `src/mcp/` + `src/app/api/mcp/` | Exposes the engine as MCP tools — see [mcp.md](mcp.md) |
+| Engine | `src/engine/` | The multi-agent orchestrator + agents |
+| MCP server | `src/mcp/` + `src/app/api/mcp/` | Exposes the engine as MCP tools/resources/prompts |
 | Web app | `src/app/` | Next.js UI, API routes, admin & platform panels |
 | Services | `src/lib/` | Auth, tenancy, storage, the review runner, document parsing |
 | Data | `prisma/` | Schema, migrations, seed |
 
+## The multi-agent pipeline
+
+```mermaid
+flowchart TB
+    start(["runReview()"]) --> intake["Document Intake"]
+    intake --> ra["Requirement Analyst"]
+    intake --> sm["Section Mapper"]
+    ra --> comp["Compliance"]
+    sm --> compl["Completeness"]
+    sm --> risk["Risk"]
+    comp --> verify["Citation Verifier"]
+    compl --> verify
+    risk --> verify
+    verify --> score["Scoring"]
+    score --> rec["Recommendation"]
+    rec --> asm["Report Assembler"]
+    asm --> report(["ProposalReviewReport"])
+
+    classDef llm fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
+    classDef det fill:#f1f5f9,stroke:#475569,color:#1e293b
+    classDef tool fill:#fef3c7,stroke:#d97706,color:#713f12
+    class ra,sm,compl,rec llm
+    class intake,verify,score,asm det
+    class comp,risk tool
+```
+
+A LangGraph `StateGraph` orchestrates ten agents. **Completeness, Compliance and Risk run
+concurrently** (fan-out); the Citation Verifier joins them. Blue nodes are LLM agents, grey
+nodes are deterministic, amber nodes are tool-using agents (they call the `search_proposal`
+retrieval tool). Two deterministic agents make the result trustworthy: the **Citation
+Verifier** downgrades any claim it cannot ground in the source, and the **Scoring** agent
+hard-caps the verdict at `NOT_READY` when a mandatory section is missing. See
+[engine.md](engine.md) for the full agent reference.
+
 ## Request flows
 
-### Web review (asynchronous)
+### Web review — asynchronous
 
-1. `POST /api/reviews` — the upload handler stores the documents (GCS or local disk),
-   creates `Document` + `Review` rows, and kicks a background job. It returns immediately.
-2. `processReview()` (`src/lib/reviews.ts`) parses the documents, builds the engine config
-   from the organization's settings, and runs the engine — writing per-agent progress to
-   the `Review.progress` column.
-3. The review page polls `GET /api/reviews/{id}/status`; when the status is `SUCCEEDED`
-   it renders the structured report.
+```mermaid
+sequenceDiagram
+    actor User as BD reviewer
+    participant Web as Web app
+    participant Job as Background job
+    participant Engine
+    participant DB as PostgreSQL
 
-### MCP review (synchronous)
+    User->>Web: POST /api/reviews (documents)
+    Web->>DB: create Document + Review (QUEUED)
+    Web-->>User: reviewId
+    Web-)Job: kick (fire-and-forget)
+    Job->>Engine: runReview()
+    Engine->>DB: write progress per agent
+    Engine-->>Job: ProposalReviewReport
+    Job->>DB: Review = SUCCEEDED + result
+    loop poll every 2.5s
+        User->>Web: GET /api/reviews/{id}/status
+        Web-->>User: status + progress
+    end
+    User->>Web: open /reviews/{id} — render report
+```
 
-An MCP client calls the `review_proposal` tool with the proposal (and optional RFP) text.
-The tool runs the engine inline and returns the structured JSON in the tool response.
+The upload returns immediately; the engine runs as a background job and streams per-agent
+progress into the database, which the review page polls.
 
-## Multi-tenancy
+### MCP review — synchronous
 
-Every business record carries an `organizationId`. Three roles:
+```mermaid
+sequenceDiagram
+    participant Client as MCP client
+    participant MCP as MCP server
+    participant Engine
+    participant DB as PostgreSQL
 
-| Role | Scope |
-|---|---|
-| `SUPER_ADMIN` | Platform — creates and suspends organizations |
-| `ORG_ADMIN` | One organization — access control, API keys, AI & rubric settings |
-| `REVIEWER` | One organization — runs and reads reviews |
+    Client->>MCP: review_proposal + Bearer API key
+    MCP->>DB: verify key, resolve organization
+    MCP->>Engine: runReview() — inline
+    Engine-->>MCP: ProposalReviewReport
+    MCP->>DB: persist Review (surface = MCP)
+    MCP-->>Client: structured JSON result
+```
 
-Web sign-in is gated in the Auth.js `signIn` / `jwt` callbacks: an email is matched to an
-organization via the `SUPERADMIN_EMAILS` env list, a whitelisted domain, or a whitelisted
-email — no match means no access. The MCP surface authenticates with per-organization
-API keys instead of SSO. Both resolve to an organization.
+Over MCP the engine runs inline — the tool call stays open until the report is ready.
+
+## Multi-tenancy & access control
+
+```mermaid
+flowchart TB
+    signin["Google sign-in"] --> verified{"email verified?"}
+    verified -->|no| deny["Access denied"]
+    verified -->|yes| super{"in SUPERADMIN_EMAILS?"}
+    super -->|yes| sa["SUPER_ADMIN"]
+    super -->|no| domain{"domain whitelisted?"}
+    domain -->|yes| join["Joins organization"]
+    domain -->|no| email{"email whitelisted?"}
+    email -->|yes| join
+    email -->|no| deny
+    join --> grant{"admin grant?"}
+    grant -->|yes| orgadmin["ORG_ADMIN"]
+    grant -->|no| reviewer["REVIEWER"]
+
+    classDef bad fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    classDef good fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class deny bad
+    class sa,orgadmin,reviewer good
+```
+
+Every business record carries an `organizationId`. Web sign-in is gated in the Auth.js
+callbacks by this flow; the MCP surface authenticates with per-organization API keys
+instead. Both paths resolve to exactly one organization, and all data access is scoped to
+it.
 
 ## Data model
 
-PostgreSQL via Prisma (`prisma/schema.prisma`):
+```mermaid
+erDiagram
+    Organization ||--o{ User : "has"
+    Organization ||--o| OrgSettings : "configured by"
+    Organization ||--o{ WhitelistedDomain : "allows"
+    Organization ||--o{ WhitelistedEmail : "allows"
+    Organization ||--o{ ApiKey : "issues"
+    Organization ||--o{ Document : "owns"
+    Organization ||--o{ Review : "owns"
+    Organization ||--o{ AuditLog : "records"
+    User ||--o{ Account : "links"
+    User ||--o{ Review : "creates"
+    User ||--o{ ApiKey : "creates"
+    Document ||--o{ Review : "reviewed in"
+    Review ||--o{ ReviewFeedback : "rated by"
+```
 
-| Model | Purpose |
-|---|---|
-| `Organization` | A tenant |
-| `User`, `Account`, `Session`, `VerificationToken` | Auth.js identity + Google OAuth tokens |
-| `WhitelistedDomain`, `WhitelistedEmail` | Per-org sign-in access control |
-| `ApiKey` | Per-org MCP API keys (SHA-256 hash stored) |
-| `OrgSettings` | Per-org model config + review rubric (JSON) |
-| `Document` | An uploaded proposal or RFP (metadata + storage key) |
-| `Review` | One review run — status, progress, the structured `result` JSON, verdict |
-| `ReviewFeedback` | Reviewer thumbs up/down + corrections (feeds evaluation) |
-| `AuditLog` | Every administrative and review action |
+PostgreSQL via Prisma (`prisma/schema.prisma`). `Review` holds the run status, per-agent
+progress and the full structured `result` JSON. `OrgSettings` holds the per-organization
+model config and review rubric. `Account` stores the Google OAuth tokens used to export
+Google Docs. (`Session` / `VerificationToken` are Auth.js plumbing, omitted above.)
 
-## Tech stack
+## Deployment topology
+
+```mermaid
+flowchart LR
+    dev["Developer"] -->|git push| gh["GitHub repo"]
+    gh -->|Cloud Build trigger| cb["Cloud Build"]
+    cb -->|push image| ar["Artifact Registry"]
+    cb -->|deploy| cr["Cloud Run<br/>proposal-agent"]
+    ar -.->|image| cr
+    cr -->|service account dev-zava| vertex["Vertex AI"]
+    cr -->|Cloud SQL connector| sql[("Cloud SQL<br/>dev-zava")]
+    cr --> gcs[("Cloud Storage<br/>elipedia")]
+    cr -->|mounted| sm["Secret Manager"]
+    cr -.->|traces| lf["Langfuse"]
+```
+
+A push to `main` triggers Cloud Build, which builds the image, pushes it to Artifact
+Registry and deploys a new Cloud Run revision. The service runs as the `dev-zava` service
+account; secrets are mounted from Secret Manager. See [deployment.md](deployment.md).
+
+## Technology stack
 
 TypeScript · Next.js 15 (App Router) · LangGraph.js · Vertex AI Gemini 3.5 Flash ·
 `@modelcontextprotocol/sdk` + `mcp-handler` · Auth.js v5 · Prisma + PostgreSQL ·
@@ -97,7 +217,7 @@ Langfuse · Zod · Tailwind CSS + shadcn/ui · Docker → Cloud Run.
 ## Repository layout
 
 ```
-src/engine/      orchestrator · agents/* (10) · schema (Zod) · tools/search-proposal · llm · langfuse
+src/engine/      orchestrator · agents/* (10) · schema (Zod) · tools · llm · langfuse
 src/mcp/         server (tools/resources/prompts) · stdio entry · context (API-key auth)
 src/app/         routes — (app)/* UI, admin/*, platform/*, api/* (reviews, auth, mcp)
 src/lib/         auth, session, tenancy, storage, reviews runner, engine-config, docparse/*

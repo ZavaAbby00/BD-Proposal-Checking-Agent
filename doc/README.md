@@ -7,7 +7,7 @@ For the high-level design rationale and the assignment answers, see
 
 | Document | Contents |
 |---|---|
-| [architecture.md](architecture.md) | System architecture, components, request flows, multi-tenancy, data model |
+| [architecture.md](architecture.md) | System architecture **with Mermaid diagrams** — the multi-agent pipeline, request-flow sequences, the access gate, the data model, deployment topology |
 | [engine.md](engine.md) | The multi-agent review engine — orchestrator, the ten agents, scoring, guardrails |
 | [mcp.md](mcp.md) | MCP server — tools, resources, prompts, authentication, connecting clients |
 | [api.md](api.md) | HTTP API reference — routes and request/response shapes |
