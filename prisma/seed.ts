@@ -3,9 +3,9 @@
  *
  *   npm run db:seed
  *
- * Creates the "Elitery" organization with default review settings and the
- * `elitery.com` domain whitelisted. Super-admins (from SUPERADMIN_EMAILS) then
- * sign in with both platform access and membership of this organization.
+ * Creates a "Demo Organization" with default review settings and the
+ * `example.com` domain whitelisted. Sign in as a super-admin (an address listed
+ * in SUPERADMIN_EMAILS), then change the domain in Admin -> Access control.
  */
 import { DEFAULT_RUBRIC } from "@/engine/rubric";
 
@@ -21,12 +21,12 @@ async function main() {
 
   try {
     const org = await prisma.organization.upsert({
-      where: { slug: "elitery" },
+      where: { slug: "demo" },
       update: {},
       create: {
-        name: "Elitery",
-        slug: "elitery",
-        whitelistedDomains: { create: { domain: "elitery.com" } },
+        name: "Demo Organization",
+        slug: "demo",
+        whitelistedDomains: { create: { domain: "example.com" } },
         settings: {
           create: {
             geminiModel: process.env.GEMINI_MODEL || "gemini-3.5-flash",
@@ -45,10 +45,11 @@ async function main() {
     });
 
     console.log(`Seeded organization "${org.name}" (${org.id}).`);
-    console.log("Whitelisted domain: elitery.com");
     console.log(
-      "Anyone on SUPERADMIN_EMAILS signs in as a platform super-admin; " +
-        "anyone with an @elitery.com Google account joins this organization.",
+      "Whitelisted domain: example.com — change it in Admin -> Access control.",
+    );
+    console.log(
+      "Sign in with an address listed in SUPERADMIN_EMAILS for platform access.",
     );
   } finally {
     await prisma.$disconnect();

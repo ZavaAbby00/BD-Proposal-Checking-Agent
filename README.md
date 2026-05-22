@@ -62,13 +62,13 @@ docker compose up -d db
 # ...or point DATABASE_URL at any local Postgres
 
 npm run prisma:deploy         # apply migrations
-npm run db:seed               # create the demo "Elitery" organization
+npm run db:seed               # create the demo organization
 
 npm run dev                   # http://localhost:3000
 ```
 
 Set `SUPERADMIN_EMAILS` in `.env` to your Google email — you will sign in as a
-platform super-admin. The seed whitelists the `elitery.com` domain; adjust it in
+platform super-admin. The seed whitelists the `example.com` domain; adjust it in
 **Admin → Access control** or reseed for your own domain.
 
 ### Run the engine headless (no web app, no database)

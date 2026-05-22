@@ -144,7 +144,7 @@ returned over MCP). Abridged real example:
   "proposalSummary": {
     "client": "PT Sentosa Abadi Finansial",
     "engagement": "Managed 24/7 SOC services, 12-month term",
-    "overview": "Elitery proposes a fully managed Security Operations Center ...",
+    "overview": "Nimbus Secure proposes a fully managed Security Operations Center ...",
     "proposedValue": null
   },
   "completenessChecklist": [
@@ -188,7 +188,7 @@ returned over MCP). Abridged real example:
   },
   "citations": [
     { "id": "C3", "docKind": "proposal", "page": 1, "section": "Scope of Work",
-      "quote": "Elitery will provide round-the-clock monitoring ..." }
+      "quote": "Nimbus Secure will provide round-the-clock monitoring ..." }
   ]
 }
 ```

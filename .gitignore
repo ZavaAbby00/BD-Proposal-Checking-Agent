@@ -49,5 +49,6 @@ gha-creds-*.json
 # test output
 /coverage
 
-# downloaded third-party sample (kept locally, not part of the submission)
+# generated / local-only sample artifacts (not part of the submission)
 samples/sample-rfp-internet.pdf
+samples/last-review.json
