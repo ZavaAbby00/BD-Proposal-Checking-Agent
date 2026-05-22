@@ -1,0 +1,140 @@
+TECHNICAL PROPOSAL
+MANAGED SECURITY OPERATIONS CENTER SERVICES FOR PT SENTOSA ABADI FINANSIAL
+
+Prepared by: Elitery — Managed Security & Cloud Services
+Prepared for: PT Sentosa Abadi Finansial
+Date: 22 May 2026
+Reference: ELT-PROP-2026-0518
+
+1. EXECUTIVE SUMMARY
+
+Elitery is pleased to submit this proposal to operate a 24/7 Managed Security
+Operations Center for PT Sentosa Abadi Finansial. As a financial technology
+operator supervised by OJK, Sentosa requires continuous protection of its
+lending platform and mobile application against an evolving threat landscape.
+
+Elitery proposes a fully managed SOC service combining a cloud-native SIEM,
+an experienced analyst team operating around the clock, and a structured
+incident-response capability. Our service is designed to give Sentosa
+measurable risk reduction, regulator-ready reporting, and a predictable
+operational security posture. We have delivered comparable services to other
+regulated Indonesian enterprises and operate entirely from Indonesian
+data-center facilities.
+
+We are confident that this proposal meets Sentosa's objectives and look forward
+to the opportunity to partner with your team.
+
+2. COMPANY PROFILE
+
+Elitery is an Indonesian managed-services provider established in 2011,
+specializing in managed cloud, disaster recovery, and managed security
+services. Elitery operates from Tier III data-center facilities located in
+Jakarta and Surabaya, all within Indonesian jurisdiction.
+
+Elitery holds ISO/IEC 27001:2022 certification for its information security
+management system and is staffed by analysts and engineers holding industry
+certifications including CISSP, OSCP, GCIH, and CEH. Elitery currently protects
+production environments for clients in banking, insurance, government, and
+e-commerce.
+
+3. UNDERSTANDING OF REQUIREMENTS AND SCOPE OF WORK
+
+Elitery has reviewed the Terms of Reference and understands that Sentosa
+requires continuous monitoring, detection, and response for its production
+environment. Our proposed scope of work is as follows.
+
+3.1 24/7 Security Monitoring
+Elitery will provide round-the-clock monitoring of Sentosa's cloud and
+on-premise production systems from our staffed Security Operations Center.
+Monitoring covers network, endpoint, application, and identity telemetry, with
+coverage 24 hours a day, every day of the year.
+
+3.2 SIEM Deployment and Management
+Elitery will deploy and operate a cloud-native SIEM platform. We will onboard
+log sources across Sentosa's in-scope systems, develop correlation rules tuned
+to the financial-services threat model, and continuously refine detection
+content to reduce false positives.
+
+3.3 Incident Response
+Elitery operates a documented incident-response process aligned with NIST
+guidance. Our analysts triage alerts, classify incident severity, and
+coordinate containment and recovery. For CRITICAL incidents, Elitery commits to
+acknowledge within 15 minutes and to begin containment within 30 minutes, at
+any time of day.
+
+3.4 Reporting
+Elitery will provide a monthly executive security report summarizing incidents,
+trends, and posture, and will hold a quarterly service-review meeting with
+Sentosa management.
+
+3.5 Threat Intelligence
+Elitery integrates commercial and community threat-intelligence feeds into its
+monitoring platform, enriching detection with current indicators of compromise.
+
+3.6 Data Residency
+All Sentosa log and security data will be stored and processed exclusively
+within Elitery's Indonesian data-center facilities. No customer or security
+data will leave Indonesian jurisdiction.
+
+3.7 Compliance Alignment
+Elitery's SOC operates under an ISO/IEC 27001-certified management system, and
+our reporting is designed to support Sentosa's information-security governance
+obligations.
+
+4. SERVICE DELIVERY METHODOLOGY
+
+Elitery follows a four-phase delivery methodology: Assess, Onboard, Operate, and
+Improve. During Assess, we review Sentosa's environment and define in-scope
+assets. During Onboard, we connect log sources and validate detection coverage.
+During Operate, the SOC runs continuous monitoring and response. During Improve,
+we tune detections and review service performance with Sentosa.
+
+Our analysts work in three shifts to maintain unbroken coverage, supported by a
+senior incident-response lead and a detection-engineering function that
+maintains and improves correlation content.
+
+5. PROJECT TIMELINE
+
+Elitery will transition the service in phases. We will begin with an assessment
+of Sentosa's environment, followed by onboarding of log sources and validation
+of monitoring coverage, after which the service will move into full steady-state
+operation. Elitery will work closely with Sentosa to complete the transition in
+a timely manner and will agree the detailed schedule during contract
+finalization.
+
+6. PROPOSED TEAM
+
+Elitery will assign a dedicated delivery team to the Sentosa account:
+
+  - Service Delivery Manager — single point of accountability for the service.
+  - SOC Lead — supervises analyst shifts and detection quality.
+  - Incident Response Lead — owns major-incident coordination.
+  - Security Analysts (Tier 1 and Tier 2) — staffed across three shifts.
+  - Detection Engineer — maintains SIEM correlation content.
+
+Key personnel hold CISSP, OSCP, and GCIH certifications. Curricula vitae of key
+personnel are available on request.
+
+7. RELEVANT EXPERIENCE AND REFERENCES
+
+Elitery has delivered managed security services since 2018, giving more than
+seven years of operational experience in this domain. Representative engagements
+include managed SOC services for a national multi-finance company and security
+monitoring for a regional commercial bank. Client references can be provided to
+Sentosa during the evaluation process.
+
+8. SERVICE LEVELS
+
+Elitery commits to the incident-response service levels described in section
+3.3. Detailed service-level definitions for monitoring availability and
+reporting will be agreed with Sentosa and documented in the service agreement.
+
+9. WHY ELITERY
+
+Elitery combines Indonesian data-center sovereignty, an ISO 27001-certified
+management system, and an experienced security team. We are committed to being a
+responsive and transparent security partner for Sentosa.
+
+We thank PT Sentosa Abadi Finansial for the opportunity to submit this proposal.
+
+— END OF PROPOSAL —

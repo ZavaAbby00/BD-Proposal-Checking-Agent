@@ -1,0 +1,22 @@
+[
+  {
+    "name": "missing-pricing-and-assumptions",
+    "description": "Proposal that omits Pricing and Assumptions — must never be READY.",
+    "proposal": "samples/proposal-pt-sentosa.txt",
+    "rfp": "samples/tor-pt-sentosa.txt",
+    "expect": {
+      "verdict": "NOT_READY",
+      "mandatoryMissing": ["Pricing / Cost Breakdown", "Assumptions & Exclusions"]
+    }
+  },
+  {
+    "name": "no-rfp-still-blocks-on-missing-sections",
+    "description": "Same proposal without an RFP — completeness hard cap still applies.",
+    "proposal": "samples/proposal-pt-sentosa.txt",
+    "rfp": null,
+    "expect": {
+      "verdict": "NOT_READY",
+      "mandatoryMissing": ["Pricing / Cost Breakdown", "Assumptions & Exclusions"]
+    }
+  }
+]

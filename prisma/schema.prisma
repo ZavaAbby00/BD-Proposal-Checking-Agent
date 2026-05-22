@@ -1,0 +1,291 @@
+// AI Proposal Checking Agent — data model.
+// Multi-tenant: every business model carries organizationId and is queried
+// through the org-scoped data-access helper (src/lib/tenancy.ts).
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum Role {
+  SUPER_ADMIN // platform operator — manages organizations
+  ORG_ADMIN   // administers one organization
+  REVIEWER    // BD member — runs and reads reviews
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum OrgStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum DocumentType {
+  PROPOSAL
+  RFP
+}
+
+enum DocumentSource {
+  UPLOAD
+  GDRIVE
+}
+
+enum ReviewStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum Verdict {
+  READY
+  NEEDS_REVISION
+  NOT_READY
+}
+
+enum ReviewSurface {
+  WEB
+  MCP
+}
+
+enum ApiKeyScope {
+  READ_ONLY // get/list reviews and resources
+  FULL      // also run reviews
+}
+
+// ─────────────────────────── Tenancy ───────────────────────────
+
+model Organization {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  logoUrl   String?
+  status    OrgStatus @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  users              User[]
+  whitelistedDomains WhitelistedDomain[]
+  whitelistedEmails  WhitelistedEmail[]
+  apiKeys            ApiKey[]
+  settings           OrgSettings?
+  documents          Document[]
+  reviews            Review[]
+  auditLogs          AuditLog[]
+}
+
+// ─────────────────────── Auth.js (NextAuth) ───────────────────────
+
+model User {
+  id             String     @id @default(cuid())
+  name           String?
+  email          String     @unique
+  emailVerified  DateTime?
+  image          String?
+  role           Role       @default(REVIEWER)
+  status         UserStatus @default(ACTIVE)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  lastLoginAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  reviews   Review[]
+  apiKeys   ApiKey[]
+  feedback  ReviewFeedback[]
+  auditLogs AuditLog[]
+
+  @@index([organizationId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────── Access control ───────────────────────
+
+model WhitelistedDomain {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domain         String   @unique // a domain maps to exactly one organization
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+}
+
+model WhitelistedEmail {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String   @unique
+  grantsAdmin    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+}
+
+model ApiKey {
+  id             String      @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  prefix         String      // first chars of the key, shown in the admin UI
+  hashedKey      String      @unique // sha-256 of the full key
+  scope          ApiKeyScope @default(FULL)
+  lastUsedAt     DateTime?
+  createdById    String?
+  createdBy      User?       @relation(fields: [createdById], references: [id])
+  revokedAt      DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@index([organizationId])
+}
+
+// ─────────────────────── Org configuration ───────────────────────
+
+model OrgSettings {
+  id              String   @id @default(cuid())
+  organizationId  String   @unique
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  geminiModel     String   @default("gemini-3.5-flash")
+  temperature     Float    @default(0.2)
+  maxOutputTokens Int      @default(4000)
+  // Review rubric — drives the Completeness agent and the Scoring hard cap.
+  mandatorySections     Json // string[]
+  recommendedSections   Json // string[]
+  requirementCategories Json // string[]
+  riskCategories        Json // string[]
+  scoreWeights          Json // { completeness, coverage, risk }
+  verdictThresholds     Json // { ready, needsRevision }
+  promptOverrides       Json? // { [agentName]: string }
+  langfuseEnabled       Boolean @default(true)
+  updatedAt             DateTime @updatedAt
+}
+
+// ─────────────────────── Documents & reviews ───────────────────────
+
+model Document {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           DocumentType
+  filename       String
+  mimeType       String
+  storageKey     String         // GCS object key, or local path under .uploads/
+  source         DocumentSource @default(UPLOAD)
+  pageCount      Int?
+  textChars      Int?
+  uploadedById   String?
+  createdAt      DateTime       @default(now())
+
+  proposalReviews Review[] @relation("ProposalDoc")
+  rfpReviews      Review[] @relation("RfpDoc")
+
+  @@index([organizationId])
+}
+
+model Review {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById     String?
+  createdBy       User?         @relation(fields: [createdById], references: [id])
+  proposalDocId   String
+  proposalDoc     Document      @relation("ProposalDoc", fields: [proposalDocId], references: [id])
+  rfpDocId        String?
+  rfpDoc          Document?     @relation("RfpDoc", fields: [rfpDocId], references: [id])
+  title           String
+  status          ReviewStatus  @default(QUEUED)
+  surface         ReviewSurface @default(WEB)
+  progress        Json?         // node-status map streamed to the UI
+  result          Json?         // the full structured checking result
+  readinessScore  Int?
+  verdict         Verdict?
+  langfuseTraceId String?
+  error           String?
+  createdAt       DateTime      @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  feedback ReviewFeedback[]
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+model ReviewFeedback {
+  id         String   @id @default(cuid())
+  reviewId   String
+  review     Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  rating     Int      // -1 (not useful) or +1 (useful)
+  correction Json?    // optional corrected fields, feeds the eval dataset
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@index([reviewId])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  actorId        String?
+  actor          User?    @relation(fields: [actorId], references: [id])
+  action         String   // e.g. "review.run", "settings.update", "apikey.create"
+  target         String?  // affected entity id / description
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([createdAt])
+}

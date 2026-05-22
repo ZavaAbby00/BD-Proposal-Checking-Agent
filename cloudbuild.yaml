@@ -1,0 +1,58 @@
+# Cloud Build → Cloud Run deploy.
+#   gcloud builds submit --config=cloudbuild.yaml .
+#
+# Uses $BUILD_ID for the image tag (always provided by Cloud Build — no manual
+# substitution needed). Runtime env vars and secrets are NOT set here; configure
+# them once on the service (see README) so this pipeline never has to enumerate
+# them — sidestepping the `--set-env-vars` replace-not-merge trap.
+#
+# Service sizing: 1 vCPU / 1 GiB, scales 0..5 instances (cost-minimized).
+# NOTE: with --min-instances=0 the instance can scale to zero when idle. A web
+# review runs as a background job after the HTTP response — it stays alive while
+# the progress page is polling, but for guaranteed completion use --min-instances=1.
+
+substitutions:
+  _REGION: asia-southeast2
+  _SERVICE: proposal-agent
+  _REPO: proposal-agent
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - docker/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --no-cpu-throttling
+      - --min-instances=0
+      - --max-instances=5
+      - --memory=1Gi
+      - --cpu=1
+      - --timeout=600
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+
+options:
+  logging: CLOUD_LOGGING_ONLY
