@@ -1,0 +1,15 @@
+# Normalize line endings — the repository stores LF; working copies adapt.
+* text=auto eol=lf
+
+# Scripts and configs that run inside Linux containers must stay LF.
+*.sh text eol=lf
+Dockerfile text eol=lf
+entrypoint.sh text eol=lf
+
+# Binary assets — never normalize.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
