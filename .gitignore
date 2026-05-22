@@ -49,3 +49,6 @@ CLAUDE.md
 
 # test output
 /coverage
+
+# downloaded third-party sample (kept locally, not part of the submission)
+samples/sample-rfp-internet.pdf
