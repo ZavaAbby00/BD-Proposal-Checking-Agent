@@ -15,7 +15,6 @@ const nextConfig: NextConfig = {
     "unpdf",
     "mammoth",
     "@google-cloud/storage",
-    "googleapis",
   ],
 };
 

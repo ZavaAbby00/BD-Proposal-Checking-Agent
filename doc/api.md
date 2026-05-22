@@ -9,11 +9,9 @@ Create and start a review. Auth: session (REVIEWER+). Body: `multipart/form-data
 
 | Field | Values |
 |---|---|
-| `proposalSource` | `upload` or `gdoc` |
-| `proposalFile` | the file (when `proposalSource=upload`) — PDF / DOCX / TXT / MD, ≤ 20 MB |
-| `proposalGdocUrl` | a Google Docs link (when `proposalSource=gdoc`) |
-| `rfpSource` | `none`, `upload` or `gdoc` |
-| `rfpFile` / `rfpGdocUrl` | as above, when an RFP is supplied |
+| `proposalFile` | the proposal file — PDF / DOCX / TXT / MD, ≤ 20 MB |
+| `rfpSource` | `none` or `upload` |
+| `rfpFile` | the client-brief file, when `rfpSource=upload` |
 | `title` | optional review title |
 
 Stores the documents, creates `Document` + `Review` rows, kicks the background job, and
@@ -24,8 +22,8 @@ returns immediately:
 { "error": "message" }       // 400 / 401 / 403
 ```
 
-Google Docs are exported via the Drive API using the signed-in user's OAuth token
-(the `drive.readonly` scope is requested at sign-in).
+The app ingests only uploaded files — it requests no OAuth scopes beyond basic
+sign-in and has no access to any external file storage.
 
 ## `GET /api/reviews/{id}/status`
 

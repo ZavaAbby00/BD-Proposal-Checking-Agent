@@ -12,6 +12,7 @@ For the high-level design rationale and the assignment answers, see
 | [mcp.md](mcp.md) | MCP server — tools, resources, prompts, authentication, connecting clients |
 | [api.md](api.md) | HTTP API reference — routes and request/response shapes |
 | [deployment.md](deployment.md) | Deployment, environment variables, CI/CD, operations |
+| [security.md](security.md) | Security review — controls in place, findings, prioritized recommendations |
 
 ## At a glance
 

@@ -3,8 +3,6 @@ import { chunkPage, paginate } from "@/lib/docparse/chunk";
 import { parsePdf } from "@/lib/docparse/pdf";
 import { parseDocx } from "@/lib/docparse/docx";
 
-export { parseGoogleDocId, exportGoogleDoc } from "@/lib/docparse/gdocs";
-
 export type ParseInput = {
   buffer: Buffer;
   mimeType: string;

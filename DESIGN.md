@@ -46,7 +46,7 @@ proposal-checking capability is reusable by any AI agent, not locked to one UI.
 | LLM | Vertex AI Gemini 3.5 Flash | Fast, strong structured output; ADC auth (no API keys) |
 | MCP | `@modelcontextprotocol/sdk` + `mcp-handler` | Streamable HTTP MCP server hosted inside a Next.js route |
 | Web | Next.js 15 (App Router) | UI + API + server actions in one runtime |
-| Auth | Auth.js v5 — Google SSO | Domain-restricted sign-in; Drive scope for Google Docs ingest |
+| Auth | Auth.js v5 — Google SSO | Domain-restricted sign-in; no third-party data scopes requested |
 | Observability | Langfuse | Traces the orchestrator → agent → tool tree |
 | Data | PostgreSQL + Prisma | Multi-tenant relational data |
 | Storage | Cloud Storage (local-disk fallback) | Uploaded documents |
@@ -54,8 +54,7 @@ proposal-checking capability is reusable by any AI agent, not locked to one UI.
 
 ### Document ingestion
 
-`PDF` (via `unpdf`, per-page text), `DOCX` (via `mammoth`) and `Google Docs`
-(exported through the Drive API using the signed-in user's OAuth token) are all
+`PDF` (via `unpdf`, per-page text) and `DOCX` (via `mammoth`) uploads are
 normalized into a `ParsedDoc`: a list of **chunks**, each with a stable id
 (`P3-002` = proposal, page 3, chunk 2). Chunk ids are the **citation anchors**
 that make every finding traceable to the source.

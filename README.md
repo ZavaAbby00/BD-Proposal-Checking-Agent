@@ -46,9 +46,9 @@ Prisma + PostgreSQL · Langfuse · Docker → Cloud Run.
 - PostgreSQL (local, or via the bundled `docker-compose.yml`)
 - A GCP project with the **Vertex AI API** enabled, and Application Default
   Credentials (`gcloud auth application-default login`)
-- A Google OAuth 2.0 **Web** client (for SSO) — set the consent screen to
-  *Internal*, add the redirect URI `<app-url>/api/auth/callback/google`, and
-  request the `drive.readonly` scope
+- A Google OAuth 2.0 **Web** client for SSO — set the consent screen to
+  *Internal* and add the redirect URI `<app-url>/api/auth/callback/google`
+  (only the basic `openid email profile` scopes are requested)
 - *(optional)* a Langfuse project for tracing
 
 ## Local setup
@@ -92,8 +92,8 @@ Both require Vertex AI access (ADC).
 
 1. Sign in with a whitelisted Google account.
 2. **New review** → upload `samples/proposal-pt-sentosa.pdf` as the proposal and
-   `samples/tor-pt-sentosa.pdf` as the client brief. (`.txt`/`.docx` files and
-   Google Docs links also work.)
+   `samples/tor-pt-sentosa.pdf` as the client brief. (`.txt` and `.docx` files
+   also work.)
 3. Watch the multi-agent pipeline run, then read the structured result —
    completeness checklist, requirement match, key gaps, commercial risks,
    recommendations, readiness score, and citations.

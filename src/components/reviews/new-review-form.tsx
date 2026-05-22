@@ -3,15 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Upload, Link2, FileText } from "lucide-react";
+import { FileText, Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-type ProposalSource = "upload" | "gdoc";
-type RfpSource = "none" | "upload" | "gdoc";
+type RfpSource = "upload" | "none";
 
 function Segmented<T extends string>({
   value,
@@ -48,14 +47,12 @@ export function NewReviewForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [proposalSource, setProposalSource] = useState<ProposalSource>("upload");
   const [rfpSource, setRfpSource] = useState<RfpSource>("upload");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const formData = new FormData(e.currentTarget);
-    formData.set("proposalSource", proposalSource);
     formData.set("rfpSource", rfpSource);
 
     setSubmitting(true);
@@ -80,33 +77,16 @@ export function NewReviewForm() {
           <CardTitle className="text-base">Proposal draft</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Segmented
-            value={proposalSource}
-            onChange={setProposalSource}
-            options={[
-              { value: "upload", label: "Upload file", icon: Upload },
-              { value: "gdoc", label: "Google Docs link", icon: Link2 },
-            ]}
+          <Input
+            name="proposalFile"
+            type="file"
+            accept=".pdf,.docx,.txt,.md"
+            required
+            className="cursor-pointer"
           />
-          {proposalSource === "upload" ? (
-            <Input
-              name="proposalFile"
-              type="file"
-              accept=".pdf,.docx,.txt,.md"
-              required
-              className="cursor-pointer"
-            />
-          ) : (
-            <Input
-              name="proposalGdocUrl"
-              type="url"
-              placeholder="https://docs.google.com/document/d/..."
-              required
-            />
-          )}
           <p className="text-xs text-muted-foreground">
-            PDF, DOCX or plain text. Google Docs are exported automatically using
-            your Drive access.
+            PDF, DOCX or plain text, up to 20 MB. To review a Google Doc, export
+            it to PDF or DOCX first.
           </p>
         </CardContent>
       </Card>
@@ -121,7 +101,6 @@ export function NewReviewForm() {
             onChange={setRfpSource}
             options={[
               { value: "upload", label: "Upload file", icon: Upload },
-              { value: "gdoc", label: "Google Docs link", icon: Link2 },
               { value: "none", label: "No brief", icon: FileText },
             ]}
           />
@@ -132,14 +111,6 @@ export function NewReviewForm() {
               accept=".pdf,.docx,.txt,.md"
               required
               className="cursor-pointer"
-            />
-          )}
-          {rfpSource === "gdoc" && (
-            <Input
-              name="rfpGdocUrl"
-              type="url"
-              placeholder="https://docs.google.com/document/d/..."
-              required
             />
           )}
           <p className="text-xs text-muted-foreground">

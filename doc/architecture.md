@@ -185,8 +185,8 @@ erDiagram
 
 PostgreSQL via Prisma (`prisma/schema.prisma`). `Review` holds the run status, per-agent
 progress and the full structured `result` JSON. `OrgSettings` holds the per-organization
-model config and review rubric. `Account` stores the Google OAuth tokens used to export
-Google Docs. (`Session` / `VerificationToken` are Auth.js plumbing, omitted above.)
+model config and review rubric. `Account` holds the Google sign-in identity link.
+(`Session` / `VerificationToken` are Auth.js plumbing, omitted above.)
 
 ## Deployment topology
 

@@ -76,7 +76,7 @@ export { DEFAULT_RUBRIC, normalizeRubric } from "@/engine/rubric";
 export type { Rubric, ScoreWeights, VerdictThresholds } from "@/engine/rubric";
 
 // Document ingestion + the search tool.
-export { parseDocument, renderChunks, parseGoogleDocId, exportGoogleDoc } from "@/lib/docparse";
+export { parseDocument, renderChunks } from "@/lib/docparse";
 export { searchProposal, gatherEvidence } from "@/engine/tools/search-proposal";
 
 // Individual specialist agents — used by the MCP granular tools.

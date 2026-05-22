@@ -14,19 +14,9 @@ export const authConfig = {
   trustHost: true,
   session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
   pages: { signIn: "/signin", error: "/signin" },
-  providers: [
-    Google({
-      authorization: {
-        params: {
-          // Drive read-only is requested so the agent can ingest Google Docs.
-          scope:
-            "openid email profile https://www.googleapis.com/auth/drive.readonly",
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    }),
-  ],
+  // Google provider with default scopes only — openid, email, profile.
+  // No Drive (or other) scopes are requested: the app never reads user files.
+  providers: [Google],
   callbacks: {
     /** Used by the middleware to gate every route. */
     authorized({ auth, request }) {
