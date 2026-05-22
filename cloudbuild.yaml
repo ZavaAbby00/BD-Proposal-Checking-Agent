@@ -22,7 +22,7 @@ steps:
     args:
       - build
       - -f
-      - docker/Dockerfile
+      - Dockerfile
       - -t
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
       - .
